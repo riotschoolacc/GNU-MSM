@@ -5,6 +5,7 @@ used packages (linux):
 libsdl2-dev
 libsdl2-mixer-dev
 libgles2-mesa-dev
+libavif-dev
 
 this project is not affiliated with big blue bubble (the original creators of my singing monsters) in any way.
 this is all fanmade, and we do not promote hacks.

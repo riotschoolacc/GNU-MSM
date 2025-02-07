@@ -6,6 +6,25 @@
 #include <sstream>
 #include <stdio.h>
 
+extern GLuint loadAVIF(const char* filepath);
+extern GLuint createQuad();
+
+const char* vertexShaderSource = R"(
+    #version 100
+    attribute vec4 position;
+    void main() {
+        gl_Position = position;
+    }
+)";
+
+const char* fragmentShaderSource = R"(
+    #version 100
+    precision mediump float;
+    void main() {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // red
+    }
+)";
+
 std::string loadShaderSource(const char* filepath) {
     std::ifstream file(filepath);
     if (!file.is_open()) {
@@ -99,20 +118,9 @@ int main() {
         return 1;
     }
     printf("OpenGL ES version: %s\n", gl_version);
-
-    // load shaders
-    std::string vertexShaderSource = loadShaderSource("data/shaders/vertex_normal.glsl");
-    std::string fragmentShaderSource = loadShaderSource("data/shaders/frag_colorize.glsl");
-
-    if (vertexShaderSource.empty() || fragmentShaderSource.empty()) {
-        SDL_GL_DeleteContext(glContext);
-        SDL_DestroyWindow(win);
-        SDL_Quit();
-        return 1;
-    }
-
+    
     // create program
-    GLuint program = createProgram(vertexShaderSource.c_str(), fragmentShaderSource.c_str());
+    GLuint program = createProgram(vertexShaderSource, fragmentShaderSource);
     if (!program) {
         SDL_GL_DeleteContext(glContext);
         SDL_DestroyWindow(win);
@@ -125,6 +133,11 @@ int main() {
     bool running = true;
     SDL_Event event;
 
+    GLuint quadVAO = createQuad();
+    GLuint texture = loadAVIF("data/gfx/menu/BBB_logo_loading_screen.avif");
+
+    GLuint textureUniformLocation = glGetUniformLocation(program, "textureSampler");
+
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -135,6 +148,12 @@ int main() {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glUniform1i(textureUniformLocation, 0);
+
+        glBindVertexArray(quadVAO);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        
         SDL_GL_SwapWindow(win);
 
         SDL_Delay(16); // ~60 FPS
