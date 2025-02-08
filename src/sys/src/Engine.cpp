@@ -37,7 +37,7 @@ void Engine::mainLoop()
     SDL_Event e;
 
     LoaderAVIF loader;
-    SDL_Surface* surface = loader.load("data/gfx/menu/BBB_logo_loading_screen.avif");
+    SDL_Surface* surface = loader.load("data/gfx/menu/logging_in.avif");
     if (!surface) {
         std::cerr << "Failed to load AVIF image." << std::endl;
         return;
@@ -50,6 +50,21 @@ void Engine::mainLoop()
         return;
     }
 
+    SDL_Surface* surface2 = loader.load("data/gfx/menu/BBB_logo_loading_screen.avif");
+    if (!surface2) {
+        std::cerr << "Failed to load second AVIF image." << std::endl;
+        return;
+    }
+
+    SDL_Texture* avifTexture2 = SDL_CreateTextureFromSurface(renderer, surface2);
+    SDL_FreeSurface(surface2);
+    if (!avifTexture2) {
+        std::cerr << "Failed to create second texture from surface! SDL_Error: " << SDL_GetError() << std::endl;
+        return;
+    }
+
+    SDL_Rect dstRect2 = { 50, 0, 140, 200 };
+
     while (!quit) {
         while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) {
@@ -60,9 +75,8 @@ void Engine::mainLoop()
         SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(renderer);
 
-        if (avifTexture) {
-            SDL_RenderCopy(renderer, avifTexture, nullptr, nullptr);
-        }
+        SDL_RenderCopy(renderer, avifTexture, nullptr, nullptr);
+        SDL_RenderCopy(renderer, avifTexture2, nullptr, &dstRect2);
 
         SDL_RenderPresent(renderer);
     }
