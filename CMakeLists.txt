@@ -15,13 +15,15 @@ target_sources(MySingingMonsters PRIVATE ${SOURCES})
 find_package(SDL2 REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 find_package(libavif REQUIRED)
+find_package(TinyXML2 REQUIRED)
+find_package(SDL2_image REQUIRED)
 
 # yeah, a workaround
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(OpenGLES2 REQUIRED glesv2)
 
-include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_MIXER_INCLUDE_DIRS} ${OpenGLES2_INCLUDE_DIRS})
+include_directories(${SDL2_INCLUDE_DIRS} ${TinyXML2_INCLUDE_DIRS} ${SDL2_MIXER_INCLUDE_DIRS} ${OpenGLES2_INCLUDE_DIRS}  ${SDL2_IMAGE_INCLUDE_DIRS})
 
-set(LIBRARIES ${SDL2_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${OpenGLES2_LIBRARIES} avif)
+set(LIBRARIES ${SDL2_LIBRARIES} ${SDL2_MIXER_LIBRARIES} ${OpenGLES2_LIBRARIES} SDL2_image::SDL2_image tinyxml2::tinyxml2 avif)
 
 target_link_libraries(MySingingMonsters PRIVATE ${LIBRARIES})

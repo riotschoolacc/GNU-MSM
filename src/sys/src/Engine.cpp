@@ -1,5 +1,52 @@
 // Engine.cpp
 #include "Singleton.h"
+#include <cstring>
+
+extern void parseTextureAtlas(const char* filename, TextureAtlas& atlas, std::vector<Sprite>& sprites);
+std::vector<Sprite> sprites;
+
+SDL_Texture* Engine::loadTexture(const char* filePath)
+{
+    std::string patha(filePath);
+    if (strncmp(filePath, "data/", 5) != 0) {
+        patha = "data/" + patha;
+    }
+    const char* path = patha.c_str();    
+
+    SDL_Surface* surface = nullptr;
+    
+    if (strstr(path, ".png")) {
+        std::string newPath(path);
+        size_t pos = newPath.rfind(".png");
+
+        if (pos != std::string::npos) {
+            newPath.replace(pos, 4, ".avif");
+
+            LoaderAVIF loader;
+            surface = loader.load(newPath);
+        }
+    } else if (strstr(path, ".avif")) {
+        LoaderAVIF loader;
+        surface = loader.load(path);
+    } else {
+        std::cerr << "Unsupported file format: " << path << std::endl;
+        return nullptr;
+    }
+
+    if (!surface) {
+        std::cerr << "Failed to load image: " << filePath << std::endl;
+        return nullptr;
+    }
+    
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    
+    if (!texture) {
+        std::cerr << "Failed to create texture from surface! SDL_Error: " << SDL_GetError() << std::endl;
+    }
+    
+    return texture;
+}
 
 bool Engine::init()
 {
@@ -31,41 +78,60 @@ void Engine::cleanup()
     SDL_Quit();
 }
 
+const Sprite* Engine::getButton(int mouseX, int mouseY, const std::vector<Sprite>& buttons)
+{
+    for (const auto& button : buttons) {
+        if (mouseX >= button.x && mouseX <= button.x + button.width &&
+            mouseY >= button.y && mouseY <= button.y + button.height) {
+            return &button;
+        }
+    }
+    return nullptr;
+}
+
 void Engine::mainLoop()
 {
     bool quit = false;
     SDL_Event e;
 
-    LoaderAVIF loader;
-    SDL_Surface* surface = loader.load("data/gfx/menu/logging_in.avif");
-    if (!surface) {
-        std::cerr << "Failed to load AVIF image." << std::endl;
-        return;
-    }
+    std::vector<Sprite> sprites;
 
-    SDL_Texture* avifTexture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    if (!avifTexture) {
-        std::cerr << "Failed to create texture from surface! SDL_Error: " << SDL_GetError() << std::endl;
-        return;
-    }
+    SDL_Texture* loggingin = loadTexture("data/gfx/menu/logging_in.avif");
+    SDL_Texture* bbblogo = loadTexture("data/gfx/menu/BBB_logo_loading_screen.avif");
+    SDL_Rect bbblogorect = { 0, 0, 160, 200 };
+    SDL_Texture* cmflogo = loadTexture("data/gfx/menu/credits_CMF_logo.avif");
+    SDL_Rect cmflogorect = { 1120, 0, 160, 40 };
+    TextureAtlas atlas;
+    parseTextureAtlas("data/xml_resources/buttons01.xml", atlas, sprites);
+    SDL_Texture* playbutton = loadTexture(atlas.imagePath.c_str());
+    SDL_Rect buttonRect = { 0, 0, 64, 78 };
+    SDL_Rect buttonRect2;
 
-    SDL_Surface* surface2 = loader.load("data/gfx/menu/BBB_logo_loading_screen.avif");
-    if (!surface2) {
-        std::cerr << "Failed to load second AVIF image." << std::endl;
-        return;
-    }
+    bool buttonHeld = false;
+    Sprite* buttonSprite = nullptr;
 
-    SDL_Texture* avifTexture2 = SDL_CreateTextureFromSurface(renderer, surface2);
-    SDL_FreeSurface(surface2);
-    if (!avifTexture2) {
-        std::cerr << "Failed to create second texture from surface! SDL_Error: " << SDL_GetError() << std::endl;
-        return;
-    }
+    for (auto& sprite : sprites) {
+        if (sprite.name == "button_invite") {
+            buttonSprite = &sprite;
+            buttonRect2 = { 
+                sprite.x,
+                sprite.y,
+                sprite.width,
+                sprite.height 
+            };
 
-    SDL_Rect dstRect2 = { 50, 0, 140, 200 };
+            buttonRect.x = (screenWidth - sprite.width) / 2;
+            buttonRect.y = (screenHeight - sprite.height) * 0.95;
+            buttonRect.w = sprite.width;
+            buttonRect.h = sprite.height;
+            break;
+        }
+    }
 
     while (!quit) {
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+
         while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) {
                 quit = true;
@@ -75,8 +141,10 @@ void Engine::mainLoop()
         SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderClear(renderer);
 
-        SDL_RenderCopy(renderer, avifTexture, nullptr, nullptr);
-        SDL_RenderCopy(renderer, avifTexture2, nullptr, &dstRect2);
+        SDL_RenderCopy(renderer, loggingin, nullptr, nullptr);
+        SDL_RenderCopy(renderer, bbblogo, nullptr, &bbblogorect);
+        SDL_RenderCopy(renderer, cmflogo, nullptr, &cmflogorect);
+        SDL_RenderCopy(renderer, playbutton, &buttonRect2, &buttonRect);
 
         SDL_RenderPresent(renderer);
     }
