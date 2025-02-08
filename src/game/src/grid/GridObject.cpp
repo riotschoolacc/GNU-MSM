@@ -1,0 +1,4 @@
+// GridObject.cpp
+
+class GridObject {
+};
