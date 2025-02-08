@@ -8,7 +8,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 add_subdirectory(src)
 add_executable(MySingingMonsters)
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/**/*.cpp")
 
 target_sources(MySingingMonsters PRIVATE ${SOURCES})
 

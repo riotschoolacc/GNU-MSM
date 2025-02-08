@@ -1,5 +1,0 @@
-// main.cpp
-int main()
-{
-    
-}
