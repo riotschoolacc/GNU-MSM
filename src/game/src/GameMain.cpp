@@ -5,8 +5,6 @@
 string BBB_AUTH_SERVER = "https://msmpc.bbbgame.net/";
 string BBB_AUTH_MOBILE_SERVER = "https://msm-auth.bbbgame.net/";
 
-string BBB_AUTH2_SERVER = "https://auth.bbbgame.net/auth/api/";
-
 bool MOBILE = false;
 
 string PREGAME_SETUP = BBB_AUTH_SERVER + "pregame_setup.php";
